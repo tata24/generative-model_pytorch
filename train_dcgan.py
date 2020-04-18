@@ -136,26 +136,3 @@ if __name__ == "__main__":
     d_loss = {'loss_list': discriminator_losses, 'description': 'd_loss'}
     plot_loss(g_loss, d_loss)
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
