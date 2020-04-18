@@ -27,10 +27,14 @@ def show_data(data, description):
 # 打印loss曲线
 def plot_loss(*params):
     plt.figure()
+    plt.xlabel("iteration")
+    plt.ylabel("loss")
     for loss in params:
         description = loss['description']
         loss_list = loss['loss_list']
-        plt.plot(list(range(len(loss_list))), loss_list, label=description)
+        iteration = np.array(list(range(len(loss_list)))).astype(int) * 10
+        plt.plot(iteration, loss_list, label=description)
+    plt.legend()
     plt.show()
 
 

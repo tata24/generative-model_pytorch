@@ -82,13 +82,12 @@ def train(discriminator, generator, optimizerD, optimizerG):
 
             optimizerG.step()
 
-            discriminator_losses.append(discriminator_loss)
-            generator_losses.append(generator_loss)
-
             if i % 10 == 0:
                 print('[%d/%d][%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f'
                       % (epoch, epochs, i, len(dataloader),
                          discriminator_loss.item(), generator_loss.item()))
+                discriminator_losses.append(discriminator_loss)
+                generator_losses.append(generator_loss)
 
         test_noise = torch.randn(64, in_channels, 1, 1, device=device)
         with torch.no_grad():
@@ -136,6 +135,17 @@ if __name__ == "__main__":
     g_loss = {'loss_list': generator_losses, 'description': 'g_loss'}
     d_loss = {'loss_list': discriminator_losses, 'description': 'd_loss'}
     plot_loss(g_loss, d_loss)
+    
+
+
+
+
+
+
+
+
+
+
 
 
 
