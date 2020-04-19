@@ -17,7 +17,7 @@ in_channels = 100               # 生成器输入通道数
 out_channels = 3                # 生成器输出通道数
 lr = 0.0002                     # 学习率
 beta1 = 0.5                     # adam优化器的参数
-epochs = 2                      # 训练轮数
+epochs = 50                     # 训练轮数
 device = torch.device('cpu')
 gpu_num = 0
 USE_GPU = True
@@ -47,8 +47,8 @@ generator_losses = []
 discriminator_losses = []
 
 
-def train(discriminator, generator, optimizerD, optimizerG):
-    for epoch in range(epochs):
+def train(discriminator, generator, optimizerD, optimizerG, start_epoch):
+    for epoch in range(start_epoch, epochs):
         for i, data in enumerate(dataloader):
             # 训练discriminator
             discriminator.zero_grad()
@@ -92,10 +92,12 @@ def train(discriminator, generator, optimizerD, optimizerG):
         test_noise = torch.randn(64, in_channels, 1, 1, device=device)
         with torch.no_grad():
             fake = generator(test_noise).detach().cpu()
-        show_data(fake, 'generated images')
+        show_data(fake, 'epoch %d: generated images' % epoch)
 
         torch.save({
             'epoch': epoch,
+            'g_loss': generator_losses,
+            'd_loss': discriminator_losses,
             'generator_state_dict': generator.state_dict(),
             'discriminator_state_dict': discriminator.state_dict(),
             'optimizerG_state_dict': optimizerG.state_dict(),
@@ -108,7 +110,7 @@ if __name__ == "__main__":
     batch = next(iter(dataloader))
     show_data(batch[:64], description='training images')
 
-    # 构建生成器
+    # # 构建生成器
     generator = Generator(in_channels, out_channels).to(device)
     generator.apply(weights_init)
     print(generator)
@@ -130,9 +132,24 @@ if __name__ == "__main__":
     optimizerD = optim.Adam(discriminator.parameters(), lr=lr, betas=(beta1, 0.999))
     optimizerG = optim.Adam(generator.parameters(), lr=lr, betas=(beta1, 0.999))
 
-    train(discriminator, generator, optimizerD, optimizerG)
+    start_epoch = 0
+
+    # checkpoints = torch.load('./checkpoints/DCGAN/epoch_46.pth')
+    # generator.load_state_dict(checkpoints['generator_state_dict'])
+    # discriminator.load_state_dict(checkpoints['discriminator_state_dict'])
+    # optimizerG.load_state_dict(checkpoints['optimizerG_state_dict'])
+    # optimizerD.load_state_dict(checkpoints['optimizerD_state_dict'])
+    # start_epoch = checkpoints['epoch']
+    # generator_losses = checkpoints['g_loss']
+    # discriminator_losses = checkpoints['d_loss']
+
+    train(discriminator, generator, optimizerD, optimizerG, start_epoch)
 
     g_loss = {'loss_list': generator_losses, 'description': 'g_loss'}
     d_loss = {'loss_list': discriminator_losses, 'description': 'd_loss'}
     plot_loss(g_loss, d_loss)
-    
+
+    test_noise = torch.randn(64, in_channels, 1, 1, device=device)
+    with torch.no_grad():
+        fake = generator(test_noise).detach().cpu()
+    show_data(fake, 'final generated images')

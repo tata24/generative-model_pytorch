@@ -9,7 +9,8 @@ class FaceDataset(Dataset):
         super(FaceDataset, self).__init__()
         self.img_list = []
         if os.path.isdir(root):
-            self.img_list = [root + img_name for img_name in os.listdir(root)]
+            self.img_list = [root + img_name for img_name in os.listdir(root)
+                             if img_name.endswith('.jpg')]
         self.transforms = transforms
         self.target_transform = target_transform
 
