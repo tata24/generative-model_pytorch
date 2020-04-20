@@ -7,7 +7,7 @@ AE的实验结果：
 
 ## **VAE**
 ## **DCGAN**
-DCGAN由生成器和判别器组成，生成器用来生成图像，判别器用来判断的图像的真假，因此GAN并不指定隐特征的具体分布，而是通过生成器与判别器的对抗来直接学习图像的分布。
+DCGAN由生成器和判别器组成，生成器用来生成图像，判别器用来判断的图像的真假，因此GAN并不指定隐特征的具体分布，而是通过生成器与判别器的对抗来直接学习图像的分布。  
 DCGAN的实验结果：  
 <div align=center><img src="https://github.com/Lijingkan/gan_pytorch/blob/master/images/dcgan_img.png" width="400" height="400" /></div>
 
