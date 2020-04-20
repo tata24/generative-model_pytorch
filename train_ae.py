@@ -17,7 +17,7 @@ in_channels = 3                 # autoencoder输入通道数
 out_channels = 100              # autoencoder输出通道数
 lr = 0.0002                     # 学习率
 beta1 = 0.5                     # adam优化器的参数
-epochs = 100                    # 训练轮数
+epochs = 50                     # 训练轮数
 device = torch.device('cpu')
 gpu_num = 0
 USE_GPU = True
@@ -47,8 +47,8 @@ dataloader = torch.utils.data.DataLoader(
 losses = []
 
 
-def train(autoencoder, optimizer):
-    for epoch in range(epochs):
+def train(autoencoder, optimizer, start_epoch):
+    for epoch in range(start_epoch, epochs):
         for i, data in enumerate(dataloader):
             autoencoder.zero_grad()
             img = data.to(device)
@@ -68,12 +68,13 @@ def train(autoencoder, optimizer):
         with torch.no_grad():
             if isinstance(autoencoder, torch.nn.DataParallel):
                 fake = autoencoder.module.decoder(test_noise).detach().cpu()
-        show_data(fake, 'generated images')
+        show_data(fake, 'epoch %d: generated images' % epoch)
 
         torch.save({
             'epoch': epoch,
-            'generator_state_dict': autoencoder.state_dict(),
-            'optimizerG_state_dict': optimizer.state_dict(),
+            'loss': losses,
+            'autoencoder_state_dict': autoencoder.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
         }, './checkpoints/AE/epoch_%d.pth' % epoch)
 
 
@@ -93,10 +94,25 @@ if __name__ == "__main__":
 
     optimizer = optim.Adam(autoencoder.parameters(), lr=lr, betas=(beta1, 0.999))
 
-    train(autoencoder, optimizer)
+    start_epoch = 0
 
-    loss = {'loss_list': losses, 'description': 'AE_loss'}
+    # checkpoints = torch.load('./checkpoints/AE/epoch_49.pth')
+    # autoencoder.load_state_dict(checkpoints['autoencoder_state_dict'])
+    # optimizer.load_state_dict(checkpoints['optimizer_state_dict'])
+    # start_epoch = checkpoints['epoch']
+    # losses = checkpoints['loss']
+
+    train(autoencoder, optimizer, start_epoch)
+
+    loss = {'loss_list': losses, 'description': 'ae_loss'}
     plot_loss(loss)
+
+    test_noise = torch.randn(64, out_channels, 1, 1, device=device)
+    with torch.no_grad():
+        if isinstance(autoencoder, torch.nn.DataParallel):
+            fake = autoencoder.module.decoder(test_noise).detach().cpu()
+    show_data(fake, 'final generated images')
+
 
 
 

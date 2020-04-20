@@ -134,14 +134,14 @@ if __name__ == "__main__":
 
     start_epoch = 0
 
-    # checkpoints = torch.load('./checkpoints/DCGAN/epoch_46.pth')
-    # generator.load_state_dict(checkpoints['generator_state_dict'])
-    # discriminator.load_state_dict(checkpoints['discriminator_state_dict'])
-    # optimizerG.load_state_dict(checkpoints['optimizerG_state_dict'])
-    # optimizerD.load_state_dict(checkpoints['optimizerD_state_dict'])
-    # start_epoch = checkpoints['epoch']
-    # generator_losses = checkpoints['g_loss']
-    # discriminator_losses = checkpoints['d_loss']
+    # checkpoints = torch.load('./checkpoints/DCGAN/epoch_%d.pth')
+    #     # generator.load_state_dict(checkpoints['generator_state_dict'])
+    #     # discriminator.load_state_dict(checkpoints['discriminator_state_dict'])
+    #     # optimizerG.load_state_dict(checkpoints['optimizerG_state_dict'])
+    #     # optimizerD.load_state_dict(checkpoints['optimizerD_state_dict'])
+    #     # start_epoch = checkpoints['epoch']
+    #     # generator_losses = checkpoints['g_loss']
+    #     # discriminator_losses = checkpoints['d_loss']
 
     train(discriminator, generator, optimizerD, optimizerG, start_epoch)
 
