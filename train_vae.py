@@ -25,8 +25,9 @@ if USE_GPU and torch.cuda.is_available():
     device = torch.device('cuda')
     gpu_num = torch.cuda.device_count()
 
-restruction_criterion = nn.MSELoss()
+r = 0.01
 
+restruction_criterion = nn.MSELoss()
 
 """数据集构造"""
 transforms = transforms.Compose([
@@ -37,7 +38,8 @@ transforms = transforms.Compose([
     ])
 
 faceDataset = FaceDataset(root=data_root, transforms=transforms)
-print('数据集容量：', len(faceDataset))
+len_dataset = len(faceDataset)
+print('数据集容量：', len_dataset)
 dataloader = torch.utils.data.DataLoader(
     faceDataset,
     batch_size=batch_size,
@@ -46,12 +48,12 @@ dataloader = torch.utils.data.DataLoader(
 
 losses = []
 
+
 # kld_loss = (1/2) * (- logvar +mu^2 + var -1)
-def loss_function(img, fake_img, mu, log_var):
+def loss_function(img, fake_img, mu, log_var, kld_weight):
     restruction_loss = restruction_criterion(img, fake_img)
-    kld_element = mu.pow(2).add_(log_var.exp()).mul_(-1).add_(1).add_(log_var)
-    kld_loss = torch.sum(kld_element).mul_(-0.5)
-    return restruction_loss + kld_loss
+    kld_loss = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim=1), dim=0)
+    return restruction_loss + r * kld_loss * kld_weight
 
 
 def train(vae, optimizer, start_epoch):
@@ -60,7 +62,8 @@ def train(vae, optimizer, start_epoch):
             vae.zero_grad()
             img = data.to(device)
             fake_img, mu, log_var = vae(img)
-            loss = loss_function(img, fake_img, mu, log_var)
+            kld_weight = len(fake_img) / len_dataset
+            loss = loss_function(img, fake_img, mu, log_var, kld_weight)
             loss.backward()
             optimizer.step()
             losses.append(loss)
@@ -71,8 +74,9 @@ def train(vae, optimizer, start_epoch):
                          loss.item()))
 
         sigma = log_var.mul(0.5).exp_()
+        # （64，100， 1，1）
         test_noise = torch.randn(64, out_channels, 1, 1, device=device)
-        test_noise = test_noise.mul_(sigma).add_(mu)
+        test_noise = test_noise.mul_(sigma[:64]).add_(mu[:64])
 
         with torch.no_grad():
             if isinstance(vae, torch.nn.DataParallel):
@@ -104,22 +108,24 @@ if __name__ == "__main__":
     optimizer = optim.Adam(vae.parameters(), lr=lr, betas=(beta1, 0.999))
 
     start_epoch = 0
-    #
-    # checkpoints = torch.load('./checkpoints/VAE/epoch_49.pth')
-    # autoencoder.load_state_dict(checkpoints['vae_state_dict'])
-    # optimizer.load_state_dict(checkpoints['optimizer_state_dict'])
-    # start_epoch = checkpoints['epoch']
-    # losses = checkpoints['loss']
 
-    train(vae, optimizer, start_epoch)
+    checkpoints = torch.load('./checkpoints/VAE/epoch_49.pth')
+    vae.load_state_dict(checkpoints['vae_state_dict'])
+    optimizer.load_state_dict(checkpoints['optimizer_state_dict'])
+    start_epoch = checkpoints['epoch']
+    losses = checkpoints['loss']
+
+    # train(vae, optimizer, start_epoch)
 
     loss = {'loss_list': losses, 'description': 'vae_loss'}
     plot_loss(loss)
 
-    # sigma = log_var.mul(0.5).exp_()
-    # test_noise = torch.randn(64, out_channels, 1, 1, device=device)
-    # test_noise = test_noise.mul_(sigma).add_(mu)
-    # with torch.no_grad():
-    #     if isinstance(vae, torch.nn.DataParallel):
-    #         fake = vae.module.decoder(test_noise).detach().cpu()
-    # show_data(fake, 'final generated images')
+    img = next(iter(dataloader)).to(device)
+    fake_img, mu, log_var = vae(img[:64])
+    sigma = log_var.mul(0.5).exp_()
+    test_noise = torch.randn(64, out_channels, 1, 1, device=device)
+    test_noise = test_noise.mul_(sigma).add_(mu)
+    with torch.no_grad():
+        if isinstance(vae, torch.nn.DataParallel):
+            fake = vae.module.decoder(test_noise).detach().cpu()
+    show_data(fake, 'final generated images')

@@ -96,13 +96,13 @@ if __name__ == "__main__":
 
     start_epoch = 0
 
-    # checkpoints = torch.load('./checkpoints/AE/epoch_49.pth')
-    # autoencoder.load_state_dict(checkpoints['autoencoder_state_dict'])
-    # optimizer.load_state_dict(checkpoints['optimizer_state_dict'])
-    # start_epoch = checkpoints['epoch']
-    # losses = checkpoints['loss']
+    checkpoints = torch.load('./checkpoints/AE/epoch_49.pth')
+    autoencoder.load_state_dict(checkpoints['autoencoder_state_dict'])
+    optimizer.load_state_dict(checkpoints['optimizer_state_dict'])
+    start_epoch = checkpoints['epoch']
+    losses = checkpoints['loss']
 
-    train(autoencoder, optimizer, start_epoch)
+    # train(autoencoder, optimizer, start_epoch)
 
     loss = {'loss_list': losses, 'description': 'ae_loss'}
     plot_loss(loss)
