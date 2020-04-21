@@ -6,7 +6,7 @@ AE的生成结果：
 <div align=center><img src="https://github.com/Lijingkan/gan_pytorch/blob/master/images/ae_img.jpeg" width="400" height="400" /></div>
 
 ## **VariationalAutoEncoder**
-VAE在AE的基础上进行改进，它并不直接学习隐特征的编码，而是学习隐特征的分布，使得模型具有一定泛化能力。VAE的损失函数由两部分组成，一部分是与AE一致的重构误差，另一部分是隐特征的后验分布与01正态分布之间的KL散度。由于从隐特征的分布中采样的操作不可导，因此在实现模型中还使用了一个重参数技巧，使得采样操作不用参与梯度计算。为了保证训练有效，kl散度损失前还乘了一个系数来控制两部分损失的比例。
+VAE在AE的基础上进行改进，它并不直接学习隐特征的编码，而是学习隐特征的分布，使得模型具有一定泛化能力。VAE的损失函数由两部分组成，一部分是与AE一致的重构误差，另一部分是隐特征的后验分布与01正态分布之间的KL散度。由于从隐特征的分布中采样的操作不可导，因此在实现模型中还使用了一个重参数技巧，使得采样操作不用参与梯度计算。为了保证训练有效，kl散度损失还乘了一个系数来控制两部分损失的比例。  
   VAE的生成结果：  
   <div align=center><img src="https://github.com/Lijingkan/gan_pytorch/blob/master/images/vae_img.jpeg" width="400" height="400" /></div>
   
